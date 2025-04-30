@@ -1,9 +1,6 @@
-import { DataSource } from 'typeorm';
-import * as dotenv from 'dotenv';
+import { registerAs } from '@nestjs/config';
 
-dotenv.config();
-
-export const AppDataSource = new DataSource({
+export default registerAs('database', () => ({
   type: 'postgres',
   host: process.env.DB_HOST || '127.0.0.1',
   port: parseInt(process.env.DB_PORT || '5434', 10),
@@ -11,8 +8,6 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'api-db',
   schema: process.env.DB_SCHEMA || 'public',
-  entities: ['dist/**/*.entity{.ts,.js}'],
-  migrations: ['dist/migrations/*{.ts,.js}'],
   synchronize: process.env.DB_SYNCHRONIZE === 'true',
   logging: process.env.DB_LOGGING === 'false',
-});
+}));

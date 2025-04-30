@@ -10,24 +10,26 @@ import { AuthModule } from './auth/auth.module';
 import { DepartmentModule } from './department/department.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import databaseConfig from './config/database.config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [databaseConfig],
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: '127.0.0.1',
-        port: 5434,
-        username: 'postgres',
-        password: 'postgres',
-        database: 'api-db',
-        schema: 'public', // Specify the schema
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
-        logging: false, // Enable logging to see SQL queries for debugging purposes.
-      }),
+      useFactory: (configService: ConfigService) => {
+        const dbConfig = configService.get('database') as Record<string, any>;
+        return {
+          type: 'postgres' as const,
+          ...dbConfig,
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          autoLoadEntities: true,
+          logging: false,
+        };
+      },
       inject: [ConfigService],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -56,4 +58,4 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
